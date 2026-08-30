@@ -1,0 +1,14 @@
+{
+  "cleanOutputs": ["dist"],
+  "builds": [
+    {
+      "name": "schemapilot",
+      "outputDirectory": "dist",
+      "root": ".",
+      "framework": "vite",
+      "build": {
+        "command": "npm run build"
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "schemapilot",
+  "version": "1.0.0",
+  "private": false,
+  "description": "A WebMCP-enabled SEO audit tool for collaborative agent-human SEO analysis",
+  "keywords": [
+    "webmcp",
+    "seo",
+    "audit",
+    "mcp",
+    "react",
+    "vite",
+    "tailwind"
+  ],
+  "author": "SchemaPilot",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/getwhtnxt/schemapilot"
+  },
+  "homepage": "https://schemapilot.vercel.app",
+  "bugs": {
+    "url": "https://github.com/getwhtnxt/schemapilot/issues"
+  }
+}
