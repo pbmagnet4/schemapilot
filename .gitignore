@@ -7,3 +7,4 @@ dist/
 .env.local
 *.log
 .tmp/
+public/demo-audio.aac
