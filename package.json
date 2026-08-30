@@ -1,6 +1,7 @@
 {
   "name": "schemapilot",
   "version": "1.0.0",
+  "type": "module",
   "private": false,
   "description": "A WebMCP-enabled SEO audit tool for collaborative agent-human SEO analysis",
   "keywords": [
@@ -21,5 +22,28 @@
   "homepage": "https://schemapilot.vercel.app",
   "bugs": {
     "url": "https://github.com/getwhtnxt/schemapilot/issues"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "use-webmcp-tool": "^0.2.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.3",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "autoprefixer": "^10.5.4",
+    "oxlint": "^1.79.0",
+    "postcss": "^8.5.26",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~6.0.2",
+    "vite": "^8.2.2"
   }
 }
