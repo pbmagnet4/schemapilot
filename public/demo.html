@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SchemaPilot - Interactive Demo</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      height: 100vh;
+      overflow: hidden;
+      padding: 24px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .logo {
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      color: #94a3b8;
+      font-size: 14px;
+    }
+
+    .step-indicator {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .step-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #334155;
+      transition: all 0.3s ease;
+    }
+
+    .step-dot.active { background: #3b82f6; box-shadow: 0 0 12px #3b82f6; }
+    .step-dot.done { background: #22c55e; }
+
+    .step-label {
+      color: #647489;
+      font-size: 12px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .step-dot.active + .step-label { color: #3b82f6; }
+    .step-dot.done + .step-label { color: #22c55e; }
+
+    .main-area {
+      display: flex;
+      gap: 16px;
+      height: calc(100vh - 140px);
+      flex: 1;
+    }
+
+    .tool-panel {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      flex: 0 0 280px;
+      border: 1px solid #334155;
+    }
+
+    .tool-panel h3 {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+
+    .tool-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .tool-item {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px 12px;
+      transition: all 0.3s ease;
+    }
+
+    .tool-item.active {
+      border-color: #3b82f6;
+      background: #0f172a;
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.2);
+    }
+
+    .tool-item.done {
+      border-color: #22c55e;
+    }
+
+    .tool-item .tool-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: #cbd5e1;
+    }
+
+    .tool-item .tool-status {
+      font-size: 11px;
+      color: #647489;
+      margin-top: 4px;
+    }
+
+    .result-panel {
+      background: #1e293b;
+      border-radius: 12px;
+      padding: 20px;
+      flex: 1;
+      border: 1px solid #334155;
+      overflow-y: auto;
+    }
+
+    .result-panel h3 {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+
+    .finding-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .finding-item {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 14px 16px;
+      transition: all 0.3s ease;
+    }
+
+    .finding-item.severity-high { border-left: 3px solid #f97316; }
+    .finding-item.severity-medium { border-left: 3px solid #eab308; }
+    .finding-item.severity-low { border-left: 3px solid #3b82f6; }
+    .finding-item.dismissed {
+      opacity: 0.4;
+      border-left: 3px solid #22c55e;
+    }
+
+    .finding-item .finding-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #f1f5f9;
+      margin-bottom: 4px;
+    }
+
+    .finding-item .finding-desc {
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-left: 8px;
+    }
+
+    .badge-high { background: #7c2d12; color: #fb923c; }
+    .badge-medium { background: #78350f; color: #eab308; }
+    .badge-low { background: #1e3a8a; color: #60a5fa; }
+    .badge-info { background: #134e4a; color: #2ee8b9; }
+    .badge-dismissed { background: #14532d; color: #4ade80; }
+
+    .human-correction {
+      background: #064e35;
+      border: 1px solid #10b984;
+      border-radius: 4px;
+      padding: 6px 10px;
+      margin-top: 6px;
+      font-size: 11px;
+      color: #6ee7b7;
+    }
+
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      background: #0f172a;
+      color: #cbd5e1;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      border-color: #3b82f6;
+    }
+
+    .btn-primary:hover {
+      box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);
+    }
+
+    .status-line {
+      height: 18px;
+      font-size: 12px;
+      color: #647489;
+      margin: 6px 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .status-line.waiting { color: #94a3b8; }
+    .status-line.success { color: #4ade80; }
+    .status-line.active { color: #3b82f6; }
+
+    .typing {
+      display: inline-block;
+      width: 1px;
+      overflow: hidden;
+      border-right: 2px solid #3b82f6;
+      white-space: nowrap;
+      animation: typing 1s steps(10, end) 1s normal both;
+      font-family: inherit;
+    }
+
+    @keyframes typing {
+      from { width: 0; }
+      to { width: 100%; }
+    }
+
+    .pulse-dot {
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #3b82f6;
+      border-radius: 50%;
+      margin-right: 6px;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">SchemaPilot</div>
+      <div class="subtitle">WebMCP-enabled SEO Audit — Agent-Human Correction Loop</div>
+    </header>
+
+    <div class="step-indicator" id="stepIndicator">
+      <div class="step-dot active"></div><div class="step-label">Tool Registration</div>
+      <div class="step-dot"></div><div class="step-label">Agent Audit</div>
+      <div class="step-dot"></div><div class="step-label">Human Corrections</div>
+      <div class="step-dot"></div><div class="step-label">Re-audit + Actions</div>
+    </div>
+
+    <div class="main-area">
+      <div class="tool-panel">
+        <h3>WebMCP Tools</h3>
+        <div class="tool-list" id="toolList">
+          <div class="tool-item" data-tool="audit_structured_data">
+            <div class="tool-name">audit_structured_data</div>
+            <div class="tool-status">Pending</div>
+          </div>
+          <div class="tool-item" data-tool="check_title_and_meta">
+            <div class="tool-name">check_title_and_meta</div>
+            <div class="tool-status">Pending</div>
+          </div>
+          <div class="tool-item" data-tool="analyze_headings">
+            <div class="tool-name">analyze_headings</div>
+            <div class="tool-status">Pending</div>
+          </div>
+          <div class="tool-item" data-tool="find_broken_links">
+            <div class="tool-name">find_broken_links</div>
+            <div class="tool-status">Pending</div>
+          </div>
+          <div class="tool-item" data-tool="assess_content_quality">
+            <div class="tool-name">assess_content_quality</div>
+            <div class="tool-status">Pending</div>
+          </div>
+          <div class="tool-item" data-tool="check_internal_linking">
+            <div class="tool-name">check_internal_linking</div>
+            <div class="tool-status">Pending</div>
+          </div>
+          <div class="tool-item" data-tool="audit_performance_signals">
+            <div class="tool-name">audit_performance_signals</div>
+            <div class="tool-status">Pending</div>
+          </div>
+          <div class="tool-item" data-tool="get_audit_summary">
+            <div class="tool-name">get_audit_summary</div>
+            <div class="tool-status">Pending</div>
+          </div>
+        </div>
+
+        <div class="status-line" id="statusLine">Initializing WebMCP tools...</div>
+
+        <div class="action-bar">
+          <button class="btn btn-primary" id="runAudit" onclick="step2()">2. Run Audit (Agent)</button>
+          <button class="btn" id="humanCorrect" onclick="step3()" disabled>3. Human Corrects</button>
+          <button class="btn" id="reaudit" onclick="step4()" disabled>4. Re-audit (Agent)</button>
+        </div>
+      </div>
+
+      <div class="result-panel">
+        <h3>Audit Results</h3>
+        <div class="finding-list" id="findingsList">
+          <div class="status-line waiting">Click "Run Audit" to start the SEO audit.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const tools = [
+      'audit_structured_data',
+      'check_title_and_meta',
+      'analyze_headings',
+      'find_broken_links',
+      'assess_content_quality',
+      'check_internal_linking',
+      'audit_performance_signals',
+      'get_audit_summary'
+    ];
+
+    const findings = [
+      { id: '1', severity: 'high', title: 'Missing canonical link', desc: 'No <link rel="canonical"> tag found. This can cause duplicate content issues.', dismissed: false, note: '' },
+      { id: '2', severity: 'high', title: 'Missing viewport meta tag', desc: 'No <meta name="viewport"> found. Mobile rendering issues will occur.', dismissed: false, note: '' },
+      { id: '3', severity: 'high', title: 'No JSON-LD structured data found', desc: 'No JSON-LD markup detected. Rich results will not be available.', dismissed: false, note: '' },
+      { id: '4', severity: 'medium', title: 'Heading level skip (H1 → H3)', desc: 'An H1 is followed directly by an H3, skipping level(s).', dismissed: false, note: '' },
+      { id: '5', severity: 'medium', title: 'Missing og:title', desc: 'No OpenGraph og:title meta tag found.', dismissed: false, note: '' },
+      { id: '6', severity: 'medium', title: 'Missing og:description', desc: 'No OpenGraph og:description meta tag found.', dismissed: false, note: '' },
+      { id: '7', severity: 'medium', title: 'Missing og:image', desc: 'No OpenGraph og:image meta tag found.', dismissed: false, note: '' },
+      { id: '8', severity: 'high', title: 'Broken or invalid links found', desc: '1 anchor element has a missing or invalid href attribute.', dismissed: false, note: '' },
+      { id: '9', severity: 'high', title: 'Low word count', desc: 'Page has only 0 words. Quality content typically has 1,000+ words.', dismissed: false, note: '' },
+      { id: '10', severity: 'high', title: 'No images have alt text', desc: 'All 2 images lack alt attributes. Accessibility issue.', dismissed: false, note: '' },
+      { id: '11', severity: 'medium', title: 'Orphaned content sections', desc: 'Found 1 content section with no internal links.', dismissed: false, note: '' },
+      { id: '12', severity: 'medium', title: 'Insufficient internal links', desc: 'Page has only 1 internal link(s).', dismissed: false, note: '' },
+      { id: '13', severity: 'medium', title: 'Missing width/height on 2 image(s)', desc: 'Images without dimensions can cause layout shift.', dismissed: false, note: '' },
+      { id: '14', severity: 'low', title: 'Missing Twitter Card tags', desc: 'No Twitter Card meta tags found.', dismissed: false, note: '' },
+      { id: '15', severity: 'low', title: 'Images without lazy loading', desc: '2 images lack loading="lazy".', dismissed: false, note: '' },
+    ];
+
+    let correctionsApplied = false;
+    let step1Complete = false;
+
+    function updateStepDots(step) {
+      const dots = document.querySelectorAll('.step-dot');
+      dots.forEach((dot, i) => {
+        dot.classList.remove('active', 'done');
+        if (i < step) dot.classList.add('done');
+        if (i === step) dot.classList.add('active');
+      });
+      const labels = document.querySelectorAll('.step-label');
+      labels.forEach((label, i) => {
+        label.style.color = i < step ? '#22c55e' : i === step ? '#3b82f6' : '#647489';
+      });
+    }
+
+    function setStatus(text, type = 'active') {
+      const line = document.getElementById('statusLine');
+      line.textContent = text;
+      line.className = 'status-line ' + type;
+    }
+
+    function renderTools() {
+      const list = document.getElementById('toolList');
+      let html = '';
+      tools.forEach(tool => {
+        const el = document.querySelector(`.tool-item[data-tool="${tool}"]`);
+        const status = el ? el.getAttribute('data-status') || 'Pending' : 'Pending';
+        html += `<div class="tool-item" data-tool="${tool}">
+          <div class="tool-name">${tool}</div>
+          <div class="tool-status">${status}</div>
+        </div>`;
+      });
+      list.innerHTML = html;
+    }
+
+    function markTool(toolName, status) {
+      const items = document.querySelectorAll('.tool-item');
+      items.forEach(item => {
+        if (item.getAttribute('data-tool') === toolName) {
+          item.classList.add('done');
+          const statusEl = item.querySelector('.tool-status');
+          statusEl.textContent = status;
+          statusEl.style.color = '#4ade80';
+        }
+      });
+    }
+
+    function renderFindings() {
+      const list = document.getElementById('findingsList');
+      let html = '';
+
+      if (correctionsApplied) {
+        // Show only active findings, with human corrections
+        const active = findings.filter(f => !f.dismissed);
+        html = active
+          .sort((a, b) => {
+            const order = { high: 0, medium: 1, low: 2 };
+            return order[a.severity] - order[b.severity];
+          })
+          .map(f => renderFinding(f, true))
+          .join('');
+
+        // Add dismissed section
+        const dismissed = findings.filter(f => f.dismissed);
+        if (dismissed.length > 0) {
+          html += '<hr style="border-color:#334155;margin:16px 0">';
+          html += '<div style="font-size:11px;color:#647489;margin-bottom:8px">Dismissed by Human:</div>';
+          html += dismissed.map(f => renderFinding(f, true)).join('');
+        }
+      } else {
+        html = findings.map(f => renderFinding(f, false)).join('');
+      }
+
+      list.innerHTML = html;
+    }
+
+    function renderFinding(f, showCorrections = false) {
+      const badgeClass = 'badge-' + (f.dismissed ? 'dismissed' : f.severity);
+      const badgeText = f.dismissed ? 'Dismissed' : f.severity.charAt(0).toUpperCase() + f.severity.slice(1);
+      const findingClass = f.dismissed ? 'finding-item dismissed' : 'finding-item severity-' + f.severity;
+
+      let noteHtml = '';
+      if (showCorrections && f.dismissed) {
+        noteHtml = `<div class="human-correction">✓ Human: "${f.note}" (false positive dismissed)</div>`;
+      }
+      if (showCorrections && f.note && !f.dismissed && f.severity === 'medium') {
+        // Show the human note for the heading skip even if not fully dismissed in this version
+      }
+
+      return `<div class="${findingClass}">
+        <div class="finding-title">${f.title}<span class="badge ${badgeClass}">${badgeText}</span></div>
+        <div class="finding-desc">${f.desc}</div>
+        ${noteHtml}
+      </div>`;
+    }
+
+    async function step1() {
+      updateStepDots(0);
+      setStatus('Registering WebMCP tools...', 'active');
+
+      const list = document.getElementById('toolList');
+      let html = '';
+      tools.forEach(tool => {
+        html += `<div class="tool-item" data-tool="${tool}">
+          <div class="tool-name">${tool}</div>
+          <div class="tool-status">Registering...</div>
+        </div>`;
+      });
+      list.innerHTML = html;
+      list.querySelectorAll('.tool-item').forEach((item, i) => {
+        setTimeout(() => {
+          item.classList.add('done');
+          const statusEl = item.querySelector('.tool-status');
+          statusEl.textContent = 'Registered';
+          statusEl.style.color = '#4ade80';
+          setStatus(`Registered tool ${i+1}/${tools.length}: ${item.getAttribute('data-tool')}`, 'active');
+          if (i === tools.length - 1) {
+            setTimeout(() => {
+              step1Complete = true;
+              updateStepDots(1);
+              setStatus('All 8 WebMCP tools registered and ready ✓', 'success');
+              document.getElementById('runAudit').disabled = false;
+            }, 300);
+          }
+        }, i * 200);
+      });
+    }
+
+    async function step2() {
+      updateStepDots(1);
+      setStatus('Agent calling: check_title_and_meta()', 'active');
+      document.getElementById('runAudit').disabled = true;
+
+      // Animate finding discoveries
+      setTimeout(() => {
+        setStatus('Agent calling: analyze_headings()', 'active');
+      }, 300);
+      setTimeout(() => {
+        setStatus('Agent calling: audit_structured_data()', 'active');
+      }, 600);
+      setTimeout(() => {
+        setStatus('Agent calling: find_broken_links()', 'active');
+      }, 900);
+      setTimeout(() => {
+        setStatus('Agent calling: assess_content_quality()', 'active');
+      }, 1200);
+      setTimeout(() => {
+        setStatus('Agent calling: check_internal_linking()', 'active');
+      }, 1500);
+      setTimeout(() => {
+        setStatus('Agent calling: audit_performance_signals()', 'active');
+      }, 1800);
+      setTimeout(() => {
+        setStatus('Processing findings...', 'active');
+      }, 2100);
+      setTimeout(() => {
+        renderFindings();
+        setStatus('Agent found 15 SEO issues across 7 categories ✓', 'success');
+        updateStepDots(2);
+        document.getElementById('humanCorrect').disabled = false;
+      }, 2500);
+    }
+
+    async function step3() {
+      updateStepDots(2);
+      setStatus('Human reviewing findings...', 'active');
+
+      // Simulate human interaction - dismiss the heading skip as false positive
+      setTimeout(() => {
+        const headingFinding = findings.find(f => f.title.includes('Heading level skip'));
+        if (headingFinding) {
+          headingFinding.dismissed = true;
+          headingFinding.note = 'This H1→H3 skip is intentional. H3s are card section labels in our design system.';
+        }
+        renderFindings();
+        setStatus('Human dismissed: "Heading level skip" (false positive) — intentional card layout', 'success');
+      }, 500);
+
+      // Add a note to canonical
+      setTimeout(() => {
+        const canonicalFinding = findings.find(f => f.title === 'Missing canonical link');
+        if (canonicalFinding) {
+          canonicalFinding.note = 'Client uses parameter URLs. Plan to implement canonical tags in next sprint.';
+        }
+        renderFindings();
+        setStatus('Human added note to: "Missing canonical link" — implementation planned', 'success');
+      }, 1200);
+
+      setTimeout(() => {
+        correctionsApplied = true;
+        setStatus('Corrections saved to Zustand store ✓', 'success');
+        document.getElementById('humanCorrect').disabled = true;
+        document.getElementById('reaudit').disabled = false;
+      }, 2000);
+    }
+
+    async function step4() {
+      updateStepDots(3);
+      setStatus('Agent calling: get_audit_summary() with human corrections...', 'active');
+
+      setTimeout(() => {
+        renderFindings();
+        setStatus('Agent produced prioritized action list with corrections applied ✓', 'success');
+        setTimeout(() => {
+          updateStepDots(4);
+        }, 500);
+      }, 1500);
+    }
+
+    // Start the demo
+    updateStepDots(0);
+    setStatus('Initializing SchemaPilot...');
+    setTimeout(() => step1(), 500);
+  </script>
+</body>
+</html>
